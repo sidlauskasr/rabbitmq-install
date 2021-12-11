@@ -2,15 +2,15 @@ Role Name
 =========
 
 Role to fulfill these tasks:
-○ Install RabbitMQ service (latest available from RabbitMQ repository);
-○ Install RabbitMQ admin plugin;
-○ Remove guest user;
-○ Create a vhost and a user with read, write privileges on the created vhost;
-○ Modify RabbitMQ open files limit to 100K.
-○ Test user password stored in ansible vault;
-○ RabbitMQ installation should be suitable for Debian operating system;
-○ Yaml files should pass linter (for example: yamllint).
-○ Firewall to:
+1 Install RabbitMQ service (latest available from RabbitMQ repository);
+2 Install RabbitMQ admin plugin;
+3 Remove guest user;
+4 Create a vhost and a user with read, write privileges on the created vhost;
+5 Modify RabbitMQ open files limit to 100K.
+6 Test user password stored in ansible vault;
+7 RabbitMQ installation should be suitable for Debian operating system;
+8 Yaml files should pass linter (for example: yamllint).
+9 Firewall to:
    Open rabbitmq admin console to outside;
    Open default rabbitmq port for localhost only.
 sample script to create exhange,queue,bind them, create user and post single message
