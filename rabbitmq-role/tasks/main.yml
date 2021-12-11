@@ -1,0 +1,181 @@
+---
+# tasks file for rabbitmq setup
+
+
+- name: Install nessesary package
+  apt: 
+      name: 
+        - apt-transport-https
+        - curl
+        - gnupg
+      state: present
+      update_cache: yes
+
+- name: Add an apt signing key
+  ansible.builtin.apt_key:
+    url: https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc
+    state: present
+
+- name: Add an ppa signing key
+  ansible.builtin.apt_key:
+    url: https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xf77f1eda57ebb1cc
+    state: present
+
+- name: Add an rabbit apt signing key
+  ansible.builtin.apt_key:
+    url: https://keys.openpgp.org/vks/v1/by-fingerprint/0A9AF2115F4687BD29803A206B73A36E6026DFCA
+    state: present
+- name: Add an rabbit gpg signing key
+  ansible.builtin.apt_key:
+    url: https://packagecloud.io/rabbitmq/rabbitmq-server/gpgkey
+    state: present
+
+
+- name: fix unmet dependencies
+  shell: apt-get -f install
+
+- name: Add earlang repo
+  ansible.builtin.apt_repository:
+    repo: deb http://ppa.launchpad.net/rabbitmq/rabbitmq-erlang/ubuntu bionic main
+    state: present
+    filename: 'net.launchpad.ppa.rabbitmq.erlang.gpg'
+
+- name: add trusted key
+  ansible.builtin.apt_repository:
+    repo: deb http://ppa.launchpad.net/rabbitmq/rabbitmq-erlang/ubuntu bionic main
+    state: present
+    filename: 'net.launchpad.ppa.rabbitmq.erlang.gpg'
+
+- name: Add rabbit repo
+  ansible.builtin.apt_repository:
+    repo: deb https://packagecloud.io/rabbitmq/rabbitmq-server/ubuntu/ bionic main
+    state: present
+    filename: 'io.packagecloud.rabbitmq.gpg'
+
+- name: add trusted key
+  ansible.builtin.apt_repository:
+    repo: deb https://packagecloud.io/rabbitmq/rabbitmq-server/ubuntu/ bionic main
+    state: present
+    filename: 'io.packagecloud.rabbitmq.gpg'
+
+
+- name: install earlang
+  apt:
+    name: 
+      - erlang
+      - erlang-base
+      - erlang-asn1
+      - erlang-crypto 
+      - erlang-eldap 
+      - erlang-ftp 
+      - erlang-inets
+      - erlang-mnesia 
+      - erlang-os-mon 
+      - erlang-parsetools 
+      - erlang-public-key
+      - erlang-runtime-tools 
+      - erlang-snmp 
+      - erlang-ssl
+      - erlang-syntax-tools 
+      - erlang-tftp 
+      - erlang-tools 
+      - erlang-xmerl
+    state: present
+    update_cache: yes
+
+- name: install rabbitmq
+  apt: 
+    name: rabbitmq-server
+    state: present
+    update_cache: yes
+
+- name: enable rabbitmq plugins
+  rabbitmq_plugin:
+    names: rabbitmq_management
+    state: enabled
+  notify:
+    - restart rabbitmq-server.service
+
+- name: add rabbitmq users admin
+  rabbitmq_user:
+    user: admin
+    password: superpassword
+    vhost: /
+    tags: administrator
+    configure_priv: .*
+    read_priv: .*
+    write_priv: .*
+    state: present
+   
+- name: Install rabbitMQ Admin
+  shell: wget http://guest:guest@localhost:15672/cli/rabbitmqadmin
+
+- name: Move the rabbitMQ Admin
+  shell: mv rabbitmqadmin /usr/local/bin
+
+- name: Make executable rabbitMQ Admin
+  shell: chmod +x /usr/local/bin/rabbitmqadmin
+
+- name: remove default guest user
+  rabbitmq_user: 
+    user: guest
+    state: absent
+
+- name: create vhost
+  rabbitmq_vhost:
+    name: /test
+    state: present
+
+- name: add rabbitmq user rw to vhost
+  rabbitmq_user:
+    user: rw
+    password: "{{ p }}"
+    vhost: /test
+    tags: Monitoring
+    configure_priv: .*
+    read_priv: .*
+    write_priv: .*
+    state: present
+    update_password: always
+
+
+- name: change rabbitmq file limits
+  file:
+    path: "/etc/systemd/system/rabbitmq-server.service.d"
+    state: directory
+- name: copy advanced system file to systemd
+  copy:
+    src: limit_nofile.conf
+    dest: /etc/systemd/system/rabbitmq-server.service.d/limit_nofile.conf
+
+- name: force systemd to reread configs
+  ansible.builtin.systemd:
+    state: restarted
+    daemon_reload: yes
+    name: rabbitmq-server.service
+
+- name: Allow new incoming packets on TCP port 15672 rabbitmq management
+  ansible.builtin.iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_ports: 
+      - "15672"
+      - "22"
+    ctstate: NEW,ESTABLISHED
+    jump: ACCEPT
+    comment: Accept rabbitmq mgmt connections.
+
+- name: Match on localhost and tcp 5672
+  ansible.builtin.iptables:
+    chain: INPUT
+    protocol: tcp
+    source: 127.0.0.1
+    destination_port: 5672
+    jump: ACCEPT
+    comment: Accept rabbitmq localhost connections.
+
+- name: Set the policy for the INPUT chain to DROP
+  ansible.builtin.iptables:
+    chain: INPUT
+    protocol: all
+    jump: DROP
