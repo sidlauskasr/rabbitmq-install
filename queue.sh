@@ -2,8 +2,8 @@
 #URL="http://localhost:15672/cli/rabbitmqadmin"
 
 VHOST="bla"
-USER="rw"
-PWD="superpassword_for_RW"
+USER="someusername"
+PWD="superpassword_of_someusername"
 
 QUEUE="queueueueue"
 
@@ -50,4 +50,3 @@ set_message
 
 echo "Rabbitmq configured with success."
 
-echo "Message sent."

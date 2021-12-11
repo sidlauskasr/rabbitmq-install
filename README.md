@@ -36,6 +36,7 @@ Example Playbook
 scrips were written fol localhost installs, for remote systems please ammend at least hosts files and other parameters depending on your setup or internal requirements.
 
 ansible-playbook -e @rabbitmq-role/vars/secrets.yml --vault-password-file rabbitmq-role/files/PasswordForDecrypt rabbitmq-install.yml
+execute bash script to configure queue, user and post message
 
 License
 -------

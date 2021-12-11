@@ -16,7 +16,7 @@
     url: https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc
     state: present
 
-- name: Add an ppa signing key
+- name: Add an signing key
   ansible.builtin.apt_key:
     url: https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xf77f1eda57ebb1cc
     state: present
@@ -25,11 +25,11 @@
   ansible.builtin.apt_key:
     url: https://keys.openpgp.org/vks/v1/by-fingerprint/0A9AF2115F4687BD29803A206B73A36E6026DFCA
     state: present
+
 - name: Add an rabbit gpg signing key
   ansible.builtin.apt_key:
     url: https://packagecloud.io/rabbitmq/rabbitmq-server/gpgkey
     state: present
-
 
 - name: fix unmet dependencies
   shell: apt-get -f install
@@ -57,7 +57,6 @@
     repo: deb https://packagecloud.io/rabbitmq/rabbitmq-server/ubuntu/ bionic main
     state: present
     filename: 'io.packagecloud.rabbitmq.gpg'
-
 
 - name: install earlang
   apt:
@@ -138,11 +137,11 @@
     state: present
     update_password: always
 
-
 - name: change rabbitmq file limits
   file:
     path: "/etc/systemd/system/rabbitmq-server.service.d"
     state: directory
+
 - name: copy advanced system file to systemd
   copy:
     src: limit_nofile.conf
