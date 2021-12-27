@@ -152,29 +152,3 @@
     state: restarted
     daemon_reload: yes
     name: rabbitmq-server.service
-
-- name: Allow new incoming packets on TCP port 15672 rabbitmq management
-  ansible.builtin.iptables:
-    chain: INPUT
-    protocol: tcp
-    destination_ports: 
-      - "15672"
-      - "22"
-    ctstate: NEW,ESTABLISHED
-    jump: ACCEPT
-    comment: Accept rabbitmq mgmt connections.
-
-- name: Match on localhost and tcp 5672
-  ansible.builtin.iptables:
-    chain: INPUT
-    protocol: tcp
-    source: 127.0.0.1
-    destination_port: 5672
-    jump: ACCEPT
-    comment: Accept rabbitmq localhost connections.
-
-- name: Set the policy for the INPUT chain to DROP
-  ansible.builtin.iptables:
-    chain: INPUT
-    protocol: all
-    jump: DROP
